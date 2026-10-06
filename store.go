@@ -27,7 +27,7 @@ func (s *Store) Get(key string) (string, bool) {
 	return value, ok
 }
 
-// Puts saves values under a key, and if a value already exists at the key, it's overwritten
+// Puts values under a key, and if a value already exists at the key, it's overwritten
 func (s *Store) Put(key, value string) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
