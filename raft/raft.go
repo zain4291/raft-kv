@@ -8,7 +8,7 @@ import (
 type Raft struct {
 	mu          sync.Mutex
 	currentTerm int        // persistent: latest term server has seen (initialized to 0)
-	votedFor    string     // persistent: candidateId that received vote in current term (null if none)
+	votedFor    int        // persistent: candidateId that received vote in current term (-1 if none)
 	log         []logEntry // persistent: log entries
 	commitIndex int        // volatile: index of highest entry known to be committed (initialized to 0)
 	lastApplied int        // volatile: index of highest log entry applied to state machine
@@ -20,6 +20,18 @@ type Raft struct {
 }
 
 type logEntry struct {
-	term    int    // the term when the leader created this entry
-	command string // command for state machine e.g. Put 10
+	Term    int    // the term when the leader created this entry
+	Command string // command for state machine e.g. Put 10
+}
+
+type RequestVoteArgs struct {
+	Term         int // candidate's term
+	CandidateId  int // candidate's requesting vote
+	LastLogIndex int // index of candidate's last log entry
+	LastLogTerm  int // term of candidate's last log entry
+}
+
+type RequestVoteReply struct {
+	Term        int  // currentTerm for candidate to update itself
+	VoteGranted bool // true means candidate received vote
 }
