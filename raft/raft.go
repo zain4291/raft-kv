@@ -1,6 +1,7 @@
 package raft
 
 import (
+	"fmt"
 	"sync"
 )
 
@@ -34,4 +35,33 @@ type RequestVoteArgs struct {
 type RequestVoteReply struct {
 	Term        int  // currentTerm for candidate to update itself
 	VoteGranted bool // true means candidate received vote
+}
+
+func (rf *Raft) RequestVote(args *RequestVoteArgs, reply *RequestVoteReply) {
+	rf.mu.Lock()
+	defer rf.mu.Unlock()
+
+	// If request or response term is greater than current term, than change current term to that term
+	if args.Term > rf.currentTerm {
+		rf.currentTerm = args.Term
+		rf.votedFor = -1
+		reply.VoteGranted = false
+	}
+
+	if reply.Term > rf.currentTerm {
+		rf.currentTerm = reply.Term
+		rf.votedFor = -1
+		reply.VoteGranted = false
+	}
+	// If term is less than the current term, reply with false
+	if reply.Term < rf.currentTerm {
+		fmt.Println("Out of date. Revert to follower")
+		reply.VoteGranted = false
+	}
+	// If votedfor is -1 or its the candidate itself, and its candidate log is at least as up to date as receiver's log, give vote
+
+	if rf.votedFor == -1 || args.CandidateId == rf.id {
+		rf.votedFor = args.CandidateId
+		reply.VoteGranted = true
+	}
 }
